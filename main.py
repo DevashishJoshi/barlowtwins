@@ -10,12 +10,10 @@ import json
 import math
 import os
 import random
-import signal
-import subprocess
 import sys
 import time
 
-from PIL import Image, ImageOps, ImageFilter
+from PIL import ImageOps, ImageFilter
 from torch import nn, optim
 import torch
 import torchvision

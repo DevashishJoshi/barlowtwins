@@ -1,5 +1,5 @@
 import os
-import natsort
+#import natsort
 import torch
 from PIL import Image
 
@@ -9,7 +9,7 @@ class CustomDataSet(torch.utils.data.Dataset):
         self.main_dir = main_dir
         self.transform = transform
         all_imgs = os.listdir(main_dir)
-        self.total_imgs = natsort.natsorted(all_imgs)
+        self.total_imgs = all_imgs#natsort.natsorted(all_imgs)
 
     def __len__(self):
         return len(self.total_imgs)
