@@ -97,7 +97,7 @@ def main_worker(gpu, args):
     else:
         start_epoch = 0
 
-    dataset = CustomDataSet(args.data / 'train', Transform())
+    dataset = CustomDataSet(args.data, Transform())
     sampler = torch.utils.data.distributed.DistributedSampler(dataset)
     assert args.batch_size % args.world_size == 0
     per_device_batch_size = args.batch_size // args.world_size
