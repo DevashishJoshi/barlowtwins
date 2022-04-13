@@ -27,7 +27,7 @@ parser.add_argument('--workers', default=24, type=int, metavar='N',
                     help='number of data loader workers')
 parser.add_argument('--epochs', default=5, type=int, metavar='N',
                     help='number of total epochs to run')
-parser.add_argument('--batch-size', default=1024, type=int, metavar='N',
+parser.add_argument('--batch-size', default=512, type=int, metavar='N',
                     help='mini-batch size')
 parser.add_argument('--learning-rate-weights', default=0.2, type=float, metavar='LR',
                     help='base learning rate for weights')
@@ -84,7 +84,7 @@ def main_worker(gpu, args):
             param_weights.append(param)
     parameters = [{'params': param_weights}, {'params': param_biases}]
     print('Params are:')
-    print(parameters)
+    #print(parameters)
     model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[gpu])
     optimizer = LARS(parameters, lr=0, weight_decay=args.weight_decay,
                      weight_decay_filter=True,
