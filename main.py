@@ -27,7 +27,7 @@ parser.add_argument('--workers', default=24, type=int, metavar='N',
                     help='number of data loader workers')
 parser.add_argument('--epochs', default=5, type=int, metavar='N',
                     help='number of total epochs to run')
-parser.add_argument('--batch-size', default=8, type=int, metavar='N',
+parser.add_argument('--batch-size', default=1024, type=int, metavar='N',
                     help='mini-batch size')
 parser.add_argument('--learning-rate-weights', default=0.2, type=float, metavar='LR',
                     help='base learning rate for weights')
@@ -39,7 +39,7 @@ parser.add_argument('--lambd', default=0.0051, type=float, metavar='L',
                     help='weight on off-diagonal terms')
 parser.add_argument('--projector', default='8192-8192-8192', type=str,
                     metavar='MLP', help='projector MLP')
-parser.add_argument('--print-freq', default=1, type=int, metavar='N',
+parser.add_argument('--print-freq', default=100, type=int, metavar='N',
                     help='print frequency')
 parser.add_argument('--checkpoint-dir', default='./checkpoint/', type=Path,
                     metavar='DIR', help='path to checkpoint directory')
@@ -72,6 +72,7 @@ def main_worker(gpu, args):
     torch.cuda.set_device(gpu)
     torch.backends.cudnn.benchmark = True
 
+    print('In main, will load the model now')
     model = BarlowTwins(args).cuda(gpu)
     model = nn.SyncBatchNorm.convert_sync_batchnorm(model)
     param_weights = []
@@ -82,6 +83,8 @@ def main_worker(gpu, args):
         else:
             param_weights.append(param)
     parameters = [{'params': param_weights}, {'params': param_biases}]
+    print('Params are:')
+    print(parameters)
     model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[gpu])
     optimizer = LARS(parameters, lr=0, weight_decay=args.weight_decay,
                      weight_decay_filter=True,
@@ -89,12 +92,14 @@ def main_worker(gpu, args):
 
     # automatically resume from checkpoint if it exists
     if (args.checkpoint_dir / 'checkpoint.pth').is_file():
+        print('Checkpoint exists, will resume from checkpoint')
         ckpt = torch.load(args.checkpoint_dir / 'checkpoint.pth',
                           map_location='cpu')
         start_epoch = ckpt['epoch']
         model.load_state_dict(ckpt['model'])
         optimizer.load_state_dict(ckpt['optimizer'])
     else:
+        print('No checkpoint, starting from epoch 0')
         start_epoch = 0
 
     dataset = CustomDataSet(args.data, Transform())
@@ -120,14 +125,13 @@ def main_worker(gpu, args):
             scaler.step(optimizer)
             scaler.update()
             if step % args.print_freq == 0:
-                if args.rank == 0:
-                    stats = dict(epoch=epoch, step=step,
-                                 lr_weights=optimizer.param_groups[0]['lr'],
-                                 lr_biases=optimizer.param_groups[1]['lr'],
-                                 loss=loss.item(),
-                                 time=int(time.time() - start_time))
-                    print(json.dumps(stats))
-                    print(json.dumps(stats), file=stats_file)
+                stats = dict(epoch=epoch, step=step,
+                                lr_weights=optimizer.param_groups[0]['lr'],
+                                lr_biases=optimizer.param_groups[1]['lr'],
+                                loss=loss.item(),
+                                time=int(time.time() - start_time))
+                print(json.dumps(stats))
+                print(json.dumps(stats), file=stats_file)
         if args.rank == 0:
             # save checkpoint
             state = dict(epoch=epoch + 1, model=model.state_dict(),
