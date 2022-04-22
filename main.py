@@ -25,7 +25,7 @@ parser.add_argument('data', type=Path, metavar='DIR',
                     help='path to dataset')
 parser.add_argument('--workers', default=2, type=int, metavar='N',
                     help='number of data loader workers')
-parser.add_argument('--epochs', default=5, type=int, metavar='N',
+parser.add_argument('--epochs', default=10000, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--batch-size', default=128, type=int, metavar='N',
                     help='mini-batch size')
@@ -39,7 +39,7 @@ parser.add_argument('--lambd', default=0.0051, type=float, metavar='L',
                     help='weight on off-diagonal terms')
 parser.add_argument('--projector', default='8192-8192-8192', type=str,
                     metavar='MLP', help='projector MLP')
-parser.add_argument('--print-freq', default=100, type=int, metavar='N',
+parser.add_argument('--print-freq', default=500, type=int, metavar='N',
                     help='print frequency')
 parser.add_argument('--checkpoint-dir', default='./checkpoint', type=Path,
                     metavar='DIR', help='path to checkpoint directory')

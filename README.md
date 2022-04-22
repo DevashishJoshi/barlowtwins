@@ -1,3 +1,9 @@
+---------------------------------------------------------------
+DL project
+
+To train the barlowtwins model, use the command: `sbatch unlabeled.slurm`
+
+---------------------------------------------------------------
 Barlow Twins: Self-Supervised Learning via Redundancy Reduction
 ---------------------------------------------------------------
 
